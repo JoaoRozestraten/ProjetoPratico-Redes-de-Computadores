@@ -7,4 +7,6 @@ class OutputThread(threading.Thread):
         self.s = socket
 
     def run(self):
-        pass
+        while True:
+            data = self.s.recv(1024)
+            print(data.decode("utf-8"))
