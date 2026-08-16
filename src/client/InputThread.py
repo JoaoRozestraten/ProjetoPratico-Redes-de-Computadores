@@ -1,20 +1,54 @@
-import threading
+def thread_enviar(client, state):
+    running = state["running"]
+    response_event = state["response_event"]
 
+    while running[0]:
 
-class InputThread(threading.Thread):
-    def __init__(self, socket) -> None:
-        super().__init__()
-        self.s = socket
+        # Garante que o evento esteja desligado
+        response_event.clear()
 
-    def run(self) -> None:
-        while True:
-            try:
-                user_message = input()
-                if user_message.lower() == "quit":
-                    print("Closing input thread...")
-                    break
-                self.s.sendall(user_message.encode("utf-8"))
+        try:
+            comando = input("\nComando: ").strip()
 
-            except Exception as e:
-                print(f"Connection lost or error sending data: {e}")
-                break
+        except EOFError:  # NÃO ENTRAR EM DEADLOCK
+            running[0] = False
+            response_event.set()  # Libera a thread
+            break
+
+        # Verifica se o cliente ainda está executando
+        if not running[0]:
+            break
+
+        # Ignora comandos vazios
+        if not comando:
+            continue
+
+        # Envia o comando para o servidor
+        try:
+            client.sendall(comando.encode())
+
+        except (BrokenPipeError, ConnectionResetError, OSError):
+            print("Erro ao enviar comando.")
+            running[0] = False
+            response_event.set()
+            break
+
+        # EXIT
+        if comando.upper() == "EXIT":
+            print("Aguardando resposta do servidor...")
+
+            # Espera o servidor confirmar o final
+            response_event.wait()
+
+            running[0] = False
+            break
+
+        # OUTROS COMANDOS
+
+        print("Aguardando resposta do servidor...")
+
+        # A thread fica bloqueada até a thread de
+        # recebimento receber uma resposta
+        response_event.wait()
+
+    print("Thread de envio encerrada.")
