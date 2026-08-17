@@ -1,8 +1,8 @@
 import socket
 import threading
 
-from InputThread import thread_enviar
-from OutputThread import thread_receber
+from InputThread import InputThread
+from OutputThread import OutputThread
 
 
 SERVER_IP = "127.0.0.1"
@@ -18,12 +18,6 @@ def main():
 
     # Evento de recebimento de resposta
     response_event = threading.Event()
-
-    # Estado compartilhado pelas duas threads
-    state = {
-        "running": running,
-        "response_event": response_event
-    }
 
     # Criação do socket TCP
     client = socket.socket(
@@ -50,14 +44,16 @@ def main():
 
     # CRIAÇÃO DAS DUAS THREADS
 
-    thread_send = threading.Thread(
-        target=thread_enviar,
-        args=(client, state)
+    thread_send = InputThread(
+        client,
+        running,
+        response_event
     )
 
-    thread_recv = threading.Thread(
-        target=thread_receber,
-        args=(client, state)
+    thread_recv = OutputThread(
+        client,
+        running,
+        response_event
     )
 
     # Inicia as duas threads
