@@ -1,27 +1,18 @@
-from queue import Queue
+from queue import Empty, Queue
 import threading
-from server.monitor.Monitor import Monitor
-import time
 
 
 class SenderThread(threading.Thread):
-    def __init__(self, conn, monitor_q: Queue[Monitor]) -> None:
+    def __init__(self, conn, message_q: Queue, exit_flag: threading.Event) -> None:
         super().__init__()
         self.conn = conn
-        self.monitor_q = monitor_q
+        self.message_q = message_q
+        self.exit_flag = exit_flag
 
     def run(self):
-        while True:
-            curr = self.monitor_q.get()
-            tempo = time.time()
-
-            if curr.state == "PRONTO":
-                message = curr.callback()
-                curr.next_time = tempo + curr.period
+        while not self.exit_flag.is_set():
+            try:
+                message = self.message_q.get(timeout=0.5)
                 self.conn.send(message)
-                curr.state = "ESPERA"
-            if curr.state == "ESPERA":
-                if curr.next_time <= tempo:
-                    curr.state = "PRONTO"
-            if curr.state != "QUIT":
-                self.monitor_q.put(curr)
+            except Empty:
+                continue
