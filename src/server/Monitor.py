@@ -23,4 +23,5 @@ class Monitor(threading.Thread):
     def run(self) -> None:
         while not self.quit_flag.is_set():
             self.message_q.put(self.callback())
-            time.sleep(self.period)
+            if self.quit_flag.wait(timeout=self.period):
+                break
