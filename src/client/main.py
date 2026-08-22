@@ -1,8 +1,8 @@
 import socket
 import threading
 
-from InputThread import thread_enviar
-from OutputThread import thread_receber
+from SenderThread import SenderThread
+from ReceiverThread import ReceiverThread
 
 
 SERVER_IP = "127.0.0.1"
@@ -18,12 +18,6 @@ def main():
 
     # Evento de recebimento de resposta
     response_event = threading.Event()
-
-    # Estado compartilhado pelas duas threads
-    state = {
-        "running": running,
-        "response_event": response_event
-    }
 
     # Criação do socket TCP
     client = socket.socket(
@@ -48,17 +42,10 @@ def main():
         client.close()
         return
 
-    # CRIAÇÃO DAS DUAS THREADS
+    # Criação das threads
 
-    thread_send = threading.Thread(
-        target=thread_enviar,
-        args=(client, state)
-    )
-
-    thread_recv = threading.Thread(
-        target=thread_receber,
-        args=(client, state)
-    )
+    thread_send = SenderThread(client, running, response_event)
+    thread_recv = ReceiverThread(client, running, response_event)
 
     # Inicia as duas threads
     thread_recv.start()
@@ -73,8 +60,7 @@ def main():
     # Libera qualquer thread que esteja esperando
     response_event.set()
 
-    # FECHAMENTO DO SOCKET
-
+    # Finaliza o socket
     try:
         client.shutdown(socket.SHUT_RDWR)
 
@@ -90,7 +76,6 @@ def main():
     print("Cliente encerrado.")
 
 
-# EXECUÇÃO
-
+# Execução
 if __name__ == "__main__":
     main()
