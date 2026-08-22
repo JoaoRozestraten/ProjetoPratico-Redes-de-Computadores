@@ -25,6 +25,8 @@ if __name__ == "__main__":
 
         thread_1.join()
         thread_2.join()
+    except KeyboardInterrupt:
+        print("\nServer shutting down")
     finally:
         conn.close()
         s.close()
