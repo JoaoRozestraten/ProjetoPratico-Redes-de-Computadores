@@ -4,12 +4,13 @@ import threading
 from SenderThread import SenderThread
 from ReceiverThread import ReceiverThread
 
-
 SERVER_IP = "127.0.0.1"
-SERVER_PORT = 5000
+SERVER_PORT = 65432
 
 
 def main():
+    print("Monitor do Sistema 1.0 (Client-side)")
+    print("Feito por Daniel Picconi, João Rozestraten e Rodrigo Seiji\n")
 
     # Variável de controle
     # Usamos uma lista para que as threads
@@ -30,8 +31,6 @@ def main():
         client.connect(
             (SERVER_IP, SERVER_PORT)
         )
-
-        print("Conectado ao servidor com sucesso!")
 
     except ConnectionRefusedError:
         print(
