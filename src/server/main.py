@@ -16,11 +16,15 @@ if __name__ == "__main__":
     message_q = Queue()
     exit_flag = threading.Event()
 
-    thread_1 = ReceiverThread(conn, addr, message_q, exit_flag)
-    thread_2 = SenderThread(conn, message_q, exit_flag)
+    try:
+        thread_1 = ReceiverThread(conn, addr, message_q, exit_flag)
+        thread_2 = SenderThread(conn, message_q, exit_flag)
 
-    thread_1.start()
-    thread_2.start()
+        thread_1.start()
+        thread_2.start()
 
-    thread_1.join()
-    thread_2.join()
+        thread_1.join()
+        thread_2.join()
+    finally:
+        conn.close()
+        s.close()
