@@ -10,7 +10,7 @@ class SenderThread(threading.Thread):
         self.exit_flag = exit_flag
 
     def run(self):
-        while not self.exit_flag.is_set():
+        while not self.exit_flag.is_set() or not self.message_q.empty():
             try:
                 message = self.message_q.get(timeout=0.5)
                 self.conn.send(message)

@@ -4,12 +4,13 @@ import threading
 from InputThread import InputThread
 from OutputThread import OutputThread
 
-
 SERVER_IP = "127.0.0.1"
-SERVER_PORT = 5000
+SERVER_PORT = 65432
 
 
 def main():
+    print("Monitor do Sistema 1.0 (Client-side)")
+    print("Feito por Daniel Picconi, João Rozestraten e Rodrigo Seiji\n")
 
     # Variável de controle
     # Usamos uma lista para que as threads
@@ -20,41 +21,23 @@ def main():
     response_event = threading.Event()
 
     # Criação do socket TCP
-    client = socket.socket(
-        socket.AF_INET,
-        socket.SOCK_STREAM
-    )
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Conexão com o servidor
     try:
-        client.connect(
-            (SERVER_IP, SERVER_PORT)
-        )
-
-        print("Conectado ao servidor com sucesso!")
+        client.connect((SERVER_IP, SERVER_PORT))
 
     except ConnectionRefusedError:
-        print(
-            "Não foi possível conectar ao servidor. "
-            "Verifique o IP e a porta."
-        )
+        print("Não foi possível conectar ao servidor. Verifique o IP e a porta.")
 
         client.close()
         return
 
-    # CRIAÇÃO DAS DUAS THREADS
+    # Criação das threads
 
-    thread_send = InputThread(
-        client,
-        running,
-        response_event
-    )
+    thread_send = InputThread(client, running, response_event)
 
-    thread_recv = OutputThread(
-        client,
-        running,
-        response_event
-    )
+    thread_recv = OutputThread(client, running, response_event)
 
     # Inicia as duas threads
     thread_recv.start()
@@ -69,8 +52,7 @@ def main():
     # Libera qualquer thread que esteja esperando
     response_event.set()
 
-    # FECHAMENTO DO SOCKET
-
+    # Finaliza o socket
     try:
         client.shutdown(socket.SHUT_RDWR)
 
@@ -86,7 +68,7 @@ def main():
     print("Cliente encerrado.")
 
 
-# EXECUÇÃO
-
+# Execução
 if __name__ == "__main__":
     main()
+
