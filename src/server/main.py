@@ -4,7 +4,6 @@ from queue import Queue
 from ReceiverThread import ReceiverThread
 from SenderThread import SenderThread
 
-
 HOST = "127.0.0.1"
 PORT = 65432
 

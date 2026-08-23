@@ -16,3 +16,6 @@ class SenderThread(threading.Thread):
                 self.conn.send(message)
             except Empty:
                 continue
+            except (ConnectionError, BrokenPipeError):
+                self.exit_flag.set()
+                break
