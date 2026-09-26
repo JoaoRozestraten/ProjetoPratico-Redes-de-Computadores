@@ -16,6 +16,7 @@ class SenderThread(threading.Thread):
                 self.conn.send(message)
             except Empty:
                 continue
-            except (ConnectionError, BrokenPipeError):
+            # Conexao caiu ou timeout no envio
+            except OSError:
                 self.exit_flag.set()
                 break

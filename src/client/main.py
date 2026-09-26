@@ -1,3 +1,4 @@
+import os
 import socket
 import threading
 
@@ -35,7 +36,9 @@ def main():
 
     # Criação das threads
 
+    # daemon: se o servidor fechar a conexao, o cliente nao fica preso no input()
     thread_send = InputThread(client, running, response_event)
+    thread_send.daemon = True
 
     thread_recv = OutputThread(client, running, response_event)
 
@@ -43,8 +46,9 @@ def main():
     thread_recv.start()
     thread_send.start()
 
-    # Espera a thread de envio terminar
-    thread_send.join()
+    # Espera a thread de envio (EXIT) ou a de recebimento (servidor fechou/recusou) terminar
+    while thread_send.is_alive() and thread_recv.is_alive():
+        thread_recv.join(timeout=0.2)
 
     # Cliente vai ser encerrado
     running[0] = False
@@ -66,6 +70,11 @@ def main():
     thread_recv.join()
 
     print("Cliente encerrado.")
+
+    # Se a thread de envio ainda esta presa no input(), sai direto
+    # (senao o Python da erro ao finalizar com o stdin travado)
+    if thread_send.is_alive():
+        os._exit(0)
 
 
 # Execução
