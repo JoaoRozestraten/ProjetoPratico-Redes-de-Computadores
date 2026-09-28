@@ -5,6 +5,7 @@
 # efeito colateral para versões mais recentes (estou usando a 3.9.6).
 from __future__ import annotations
 
+import socket
 import threading
 from queue import Queue
 
@@ -31,7 +32,7 @@ class ReceiverThread(threading.Thread):
         self.monitors: dict[str, tuple[Monitor, threading.Event]] = {}
 
     def _log(self, mensagem: str) -> None:
-        print(f"{self.tools.horario()}, {self.addr[0]}: {mensagem}")
+        print(f"{self.tools.horario()}, {self.addr[0]}:{self.addr[1]}: {mensagem}")
 
     def parse_command(self, data: bytes) -> tuple[str | None, str | None]:
         decoded_str = data.decode("utf-8").strip()
@@ -65,8 +66,17 @@ class ReceiverThread(threading.Thread):
         print(f"{self.tools.horario()}: Conectado com {self.addr}")
         self.message_q.put(self.tools.boas_vindas())
 
+        # Timeout pra conseguir ver o exit_flag quando o SHUTDOWN vem de outro cliente
+        self.conn.settimeout(0.5)
+
         while not self.exit_flag.is_set():
-            data = self.conn.recv(1024)
+            try:
+                data = self.conn.recv(1024)
+            except socket.timeout:
+                continue
+            except OSError:
+                # Cliente caiu (ex: Ctrl+C), tratado como desconexao pra liberar a vaga
+                data = b""
             if not data:
                 print(f"{self.tools.horario()}: Desconectou {self.addr}")
                 self._parar_todos_monitores()
@@ -138,3 +148,6 @@ class ReceiverThread(threading.Thread):
                 self._log(f"Iniciando o monitor {nome} a cada {periodo}s")
             except Exception as e:
                 print(f"{e}")
+
+        # Encerramento vindo de fora (SHUTDOWN de outro cliente)
+        self._parar_todos_monitores()
