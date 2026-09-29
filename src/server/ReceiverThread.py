@@ -35,7 +35,11 @@ class ReceiverThread(threading.Thread):
         print(f"{self.tools.horario()}, {self.addr[0]}:{self.addr[1]}: {mensagem}")
 
     def parse_command(self, data: bytes) -> tuple[str | None, str | None]:
-        decoded_str = data.decode("utf-8").strip()
+        try:
+            decoded_str = data.decode("utf-8").strip()
+        except UnicodeDecodeError:
+            self._log("Dados inválidos recebidos (não UTF-8)")
+            return None, None
         if not decoded_str:
             return None, None
 

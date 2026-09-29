@@ -1,3 +1,6 @@
+# Documentação local (não vai para o repositório)
+documentacao/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

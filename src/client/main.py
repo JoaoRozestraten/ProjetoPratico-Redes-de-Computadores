@@ -29,8 +29,17 @@ def main():
         client.connect((SERVER_IP, SERVER_PORT))
 
     except ConnectionRefusedError:
-        print("Não foi possível conectar ao servidor. Verifique o IP e a porta.")
+        print("Não foi possível conectar ao servidor. Verifique se o servidor está rodando.")
+        client.close()
+        return
 
+    except TimeoutError:
+        print("Tempo de conexão esgotado. Verifique o IP e a porta.")
+        client.close()
+        return
+
+    except OSError as e:
+        print(f"Erro de conexão: {e}")
         client.close()
         return
 

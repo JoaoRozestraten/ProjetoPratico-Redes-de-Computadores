@@ -18,7 +18,12 @@ if __name__ == "__main__":
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.bind((HOST, PORT))
+    try:
+        s.bind((HOST, PORT))
+    except OSError as e:
+        print(f"Erro ao iniciar o servidor: {e}")
+        s.close()
+        sys.exit(1)
     s.listen()
     # Timeout pro accept() nao bloquear pra sempre e a linha principal conseguir ver o SHUTDOWN
     s.settimeout(1.0)
@@ -30,13 +35,20 @@ if __name__ == "__main__":
     lock = threading.Lock()
     shutdown_flag = threading.Event()
 
-    while not shutdown_flag.is_set():
-        try:
-            conn, addr = s.accept()
-        except socket.timeout:
-            continue
+    try:
+        while not shutdown_flag.is_set():
+            try:
+                conn, addr = s.accept()
+            except socket.timeout:
+                continue
+            except OSError:
+                # Socket foi fechado durante o encerramento
+                break
 
-        ClientHandler(conn, addr, clientes, lock, limite, shutdown_flag).start()
+            ClientHandler(conn, addr, clientes, lock, limite, shutdown_flag).start()
+    except KeyboardInterrupt:
+        print("\nInterrompido pelo usuário (Ctrl+C).")
+        shutdown_flag.set()
 
     with lock:
         ativos = list(clientes)

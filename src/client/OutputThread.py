@@ -28,6 +28,9 @@ class OutputThread(threading.Thread):
 
                 mensagem = data.decode()
 
+                if not mensagem:
+                    continue
+
                 print("\n-----------------------------")
                 print(mensagem)
                 print("-----------------------------")
